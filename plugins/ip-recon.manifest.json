@@ -3,7 +3,7 @@
   "content_type": "vineyard:pluginpack",
   "name": "IP Recon",
   "version": "1.0.0",
-  "description": "Passive, keyless IP enrichment: RDAP allocation/ownership, Shodan InternetDB exposure (open ports, CVEs, hostnames), and approximate geolocation. Runs entirely in the browser — no API keys, no server.",
+  "description": "Passive, keyless IP enrichment: RDAP allocation/ownership, Shodan InternetDB exposure (open ports, CVEs, hostnames), and approximate geolocation. Runs entirely in the browser \u2014 no API keys, no server.",
   "author": {
     "name": "vineyard-run",
     "url": "https://github.com/vineyard-run"
@@ -14,7 +14,7 @@
     "primary": "web",
     "web": {
       "runtime": "sandbox-js",
-      "entry": "inline"
+      "entry": "dist/pack.mjs"
     }
   },
   "plugins": [
@@ -25,16 +25,54 @@
       "version": "1.0.0",
       "description": "Looks up each selected IP's allocation in RDAP: adds the owning Netblock node (CIDR / network name / country) and fills the IP's organization + country. Keyless, CORS-native.",
       "icon": "boxes",
-      "platforms": { "primary": "web", "web": { "runtime": "sandbox-js", "entry": "inline" } },
+      "platforms": {
+        "primary": "web",
+        "web": {
+          "runtime": "sandbox-js",
+          "entry": "dist/pack.mjs"
+        }
+      },
       "io": {
-        "consumes": [{ "typepack": "run.vineyard.typepacks.infrastructure", "category": "infrastructure", "name": "ip_address" }],
-        "produces": [{ "typepack": "run.vineyard.typepacks.infrastructure", "category": "infrastructure", "name": "netblock" }]
+        "consumes": [
+          {
+            "typepack": "run.vineyard.typepacks.infrastructure",
+            "category": "infrastructure",
+            "name": "ip_address"
+          }
+        ],
+        "produces": [
+          {
+            "typepack": "run.vineyard.typepacks.infrastructure",
+            "category": "infrastructure",
+            "name": "netblock"
+          }
+        ]
       },
       "scopes": {
-        "graph": ["node:read", "node:create", "node:update", "edge:create"],
-        "network": [{ "endpoint": "https://rdap.org/", "methods": ["GET"], "purpose": "RDAP bootstrap → authoritative RIR (both send CORS *)." }]
+        "graph": [
+          "node:read",
+          "node:create",
+          "node:update",
+          "edge:create"
+        ],
+        "network": [
+          {
+            "endpoint": "https://rdap.org/",
+            "methods": [
+              "GET"
+            ],
+            "purpose": "RDAP bootstrap \u2192 authoritative RIR (both send CORS *)."
+          }
+        ]
       },
-      "lifecycle": { "persistence": "opt-in", "controls": ["progress", "cancel"], "progress": "determinate" }
+      "lifecycle": {
+        "persistence": "opt-in",
+        "controls": [
+          "progress",
+          "cancel"
+        ],
+        "progress": "determinate"
+      }
     },
     {
       "identifier": "run.vineyard.plugins.shodan_internetdb",
@@ -43,20 +81,63 @@
       "version": "1.0.0",
       "description": "Enriches each selected IP from Shodan's free InternetDB: open ports become a Host node, known CVEs become Vulnerability nodes, and reverse hostnames become Domain nodes. Keyless, no server.",
       "icon": "radar",
-      "platforms": { "primary": "web", "web": { "runtime": "sandbox-js", "entry": "inline" } },
+      "platforms": {
+        "primary": "web",
+        "web": {
+          "runtime": "sandbox-js",
+          "entry": "dist/pack.mjs"
+        }
+      },
       "io": {
-        "consumes": [{ "typepack": "run.vineyard.typepacks.infrastructure", "category": "infrastructure", "name": "ip_address" }],
+        "consumes": [
+          {
+            "typepack": "run.vineyard.typepacks.infrastructure",
+            "category": "infrastructure",
+            "name": "ip_address"
+          }
+        ],
         "produces": [
-          { "typepack": "run.vineyard.typepacks.infrastructure", "category": "infrastructure", "name": "host" },
-          { "typepack": "run.vineyard.typepacks.threat", "category": "threat", "name": "vulnerability" },
-          { "typepack": "run.vineyard.typepacks.infrastructure", "category": "infrastructure", "name": "domain" }
+          {
+            "typepack": "run.vineyard.typepacks.infrastructure",
+            "category": "infrastructure",
+            "name": "host"
+          },
+          {
+            "typepack": "run.vineyard.typepacks.threat",
+            "category": "threat",
+            "name": "vulnerability"
+          },
+          {
+            "typepack": "run.vineyard.typepacks.infrastructure",
+            "category": "infrastructure",
+            "name": "domain"
+          }
         ]
       },
       "scopes": {
-        "graph": ["node:read", "node:create", "edge:create"],
-        "network": [{ "endpoint": "https://internetdb.shodan.io/", "methods": ["GET"], "purpose": "Fetch an IP's open ports / CVEs / hostnames from Shodan InternetDB." }]
+        "graph": [
+          "node:read",
+          "node:create",
+          "edge:create"
+        ],
+        "network": [
+          {
+            "endpoint": "https://internetdb.shodan.io/",
+            "methods": [
+              "GET"
+            ],
+            "purpose": "Fetch an IP's open ports / CVEs / hostnames from Shodan InternetDB."
+          }
+        ]
       },
-      "lifecycle": { "persistence": "opt-in", "controls": ["progress", "cancel"], "progress": "determinate" }
+      "lifecycle": {
+        "persistence": "opt-in",
+        "controls": [
+          "progress",
+          "cancel"
+        ],
+        "progress": "determinate"
+      }
     },
     {
       "identifier": "run.vineyard.plugins.ip_geolocation",
@@ -65,16 +146,54 @@
       "version": "1.0.0",
       "description": "Adds an approximate Location node (city / country / lat-lon) for each selected IP via ipwho.is and fills the IP's country + organization if empty. Keyless, no server. Geolocation is approximate.",
       "icon": "map-pin",
-      "platforms": { "primary": "web", "web": { "runtime": "sandbox-js", "entry": "inline" } },
+      "platforms": {
+        "primary": "web",
+        "web": {
+          "runtime": "sandbox-js",
+          "entry": "dist/pack.mjs"
+        }
+      },
       "io": {
-        "consumes": [{ "typepack": "run.vineyard.typepacks.infrastructure", "category": "infrastructure", "name": "ip_address" }],
-        "produces": [{ "typepack": "run.vineyard.typepacks.geo", "category": "geo", "name": "location" }]
+        "consumes": [
+          {
+            "typepack": "run.vineyard.typepacks.infrastructure",
+            "category": "infrastructure",
+            "name": "ip_address"
+          }
+        ],
+        "produces": [
+          {
+            "typepack": "run.vineyard.typepacks.geo",
+            "category": "geo",
+            "name": "location"
+          }
+        ]
       },
       "scopes": {
-        "graph": ["node:read", "node:create", "node:update", "edge:create"],
-        "network": [{ "endpoint": "https://ipwho.is/", "methods": ["GET"], "purpose": "Approximate IP geolocation (keyless)." }]
+        "graph": [
+          "node:read",
+          "node:create",
+          "node:update",
+          "edge:create"
+        ],
+        "network": [
+          {
+            "endpoint": "https://ipwho.is/",
+            "methods": [
+              "GET"
+            ],
+            "purpose": "Approximate IP geolocation (keyless)."
+          }
+        ]
       },
-      "lifecycle": { "persistence": "opt-in", "controls": ["progress", "cancel"], "progress": "determinate" }
+      "lifecycle": {
+        "persistence": "opt-in",
+        "controls": [
+          "progress",
+          "cancel"
+        ],
+        "progress": "determinate"
+      }
     }
   ]
 }
