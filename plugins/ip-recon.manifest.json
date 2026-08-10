@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "description": "Passive, keyless IP enrichment: RDAP allocation/ownership, Shodan InternetDB exposure (open ports, CVEs, hostnames), and approximate geolocation. Runs entirely in the browser \u2014 no API keys, no server.",
   "author": {
-    "name": "vineyard-run",
+    "name": "VINEYARD",
     "url": "https://github.com/vineyard-run"
   },
   "license": "Apache-2.0",
