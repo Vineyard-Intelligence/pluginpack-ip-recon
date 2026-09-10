@@ -2,8 +2,8 @@
   "identifier": "run.vineyard.pluginpacks.ip_recon",
   "content_type": "vineyard:pluginpack",
   "name": "IP Recon",
-  "version": "1.0.0",
-  "description": "Passive, keyless IP enrichment: RDAP allocation/ownership, Shodan InternetDB exposure (open ports, CVEs, hostnames), and approximate geolocation. Runs entirely in the browser \u2014 no API keys, no server.",
+  "version": "1.1.0",
+  "description": "Passive, keyless IP enrichment: RDAP allocation/ownership, Shodan InternetDB exposure (open ports, CVEs, hostnames), approximate geolocation, and a Tor exit-node check. Runs entirely in the browser — no API keys, no server.",
   "author": {
     "name": "VINEYARD",
     "url": "https://github.com/Vineyard-Intelligence"
@@ -61,7 +61,7 @@
             "methods": [
               "GET"
             ],
-            "purpose": "RDAP bootstrap \u2192 authoritative RIR (both send CORS *)."
+            "purpose": "RDAP bootstrap → authoritative RIR (both send CORS *)."
           }
         ]
       },
@@ -183,6 +183,54 @@
               "GET"
             ],
             "purpose": "Approximate IP geolocation (keyless)."
+          }
+        ]
+      },
+      "lifecycle": {
+        "persistence": "opt-in",
+        "controls": [
+          "progress",
+          "cancel"
+        ],
+        "progress": "determinate"
+      }
+    },
+    {
+      "identifier": "run.vineyard.plugins.tor_exit_check",
+      "content_type": "vineyard:plugin",
+      "name": "Tor Exit Node",
+      "version": "1.0.0",
+      "description": "Marks each selected IP with is_tor_exit — whether it is a Tor exit relay — by fetching the Tor Project's Onionoo Exit-flagged relay list once and matching the whole selection against it offline. One request per run, not per address, so nothing tells the Tor Project which IPs you asked about. Keyless, no server. An exit address means the traffic left the Tor network there; it says nothing about who sent it.",
+      "icon": "shield",
+      "platforms": {
+        "primary": "web",
+        "web": {
+          "runtime": "sandbox-js",
+          "entry": "dist/pack.mjs"
+        }
+      },
+      "io": {
+        "consumes": [
+          {
+            "typepack": "run.vineyard.typepacks.infrastructure",
+            "category": "infrastructure",
+            "name": "ip_address"
+          }
+        ],
+        "produces": []
+      },
+      "scopes": {
+        "graph": [
+          "node:read",
+          "node:update"
+        ],
+        "network": [
+          {
+            "endpoint": "https://onionoo.torproject.org/details",
+            "methods": [
+              "GET"
+            ],
+            "purpose": "Fetch the Tor Project's list of Exit-flagged relay addresses (keyless, CORS)."
           }
         ]
       },
