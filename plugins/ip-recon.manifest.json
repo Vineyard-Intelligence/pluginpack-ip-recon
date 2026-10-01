@@ -2,7 +2,7 @@
   "identifier": "run.vineyard.pluginpacks.ip_recon",
   "content_type": "vineyard:pluginpack",
   "name": "IP Recon",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Enriches IP Address nodes with RDAP allocation, Shodan InternetDB open ports/CVEs/hostnames, geolocation, and a Tor exit-node check.",
   "author": {
     "name": "VINEYARD",
@@ -22,7 +22,7 @@
       "identifier": "run.vineyard.plugins.rdap_ip",
       "content_type": "vineyard:plugin",
       "name": "RDAP IP",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "description": "Looks up each selected IP Address in RDAP. Creates a Netblock node (CIDR, network name, country) linked \"within netblock\" and fills the IP's organization and country_code if empty.",
       "icon": "boxes",
       "platforms": {
@@ -61,7 +61,7 @@
             "methods": [
               "GET"
             ],
-            "purpose": "RDAP bootstrap → authoritative RIR (both send CORS *)."
+            "purpose": "Look up each selected IP's netblock and owner in RDAP."
           }
         ]
       },
@@ -78,7 +78,7 @@
       "identifier": "run.vineyard.plugins.shodan_internetdb",
       "content_type": "vineyard:plugin",
       "name": "Shodan InternetDB",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "description": "Looks up each selected IP Address in Shodan InternetDB. Creates a Host node with the open ports (and OS when known) linked \"exposes\", Vulnerability nodes for known CVEs linked \"affected by\", and Domain nodes for reverse hostnames linked \"resolves to\".",
       "icon": "radar",
       "platforms": {
@@ -126,7 +126,7 @@
             "methods": [
               "GET"
             ],
-            "purpose": "Fetch an IP's open ports / CVEs / hostnames from Shodan InternetDB."
+            "purpose": "Look up open ports, known CVEs and hostnames for each selected IP in Shodan InternetDB."
           }
         ]
       },
@@ -143,7 +143,7 @@
       "identifier": "run.vineyard.plugins.ip_geolocation",
       "content_type": "vineyard:plugin",
       "name": "IP Geolocation",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "description": "Geolocates each selected IP Address via ipwho.is. Creates a Location node (city, region, country, latitude/longitude) linked \"geolocated to\" and fills the IP's country_code and organization if empty.",
       "icon": "map-pin",
       "platforms": {
@@ -182,7 +182,7 @@
             "methods": [
               "GET"
             ],
-            "purpose": "Approximate IP geolocation (keyless)."
+            "purpose": "Look up each selected IP's approximate location and ISP."
           }
         ]
       },
@@ -199,7 +199,7 @@
       "identifier": "run.vineyard.plugins.tor_exit_check",
       "content_type": "vineyard:plugin",
       "name": "Tor Exit Node",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "description": "Checks each selected IP Address against the Tor Project's list of exit relays and sets is_tor_exit (true/false) and tor_exit_checked_at (the list's publication time) on the IP. Creates no nodes.",
       "icon": "shield",
       "platforms": {
@@ -230,7 +230,7 @@
             "methods": [
               "GET"
             ],
-            "purpose": "Fetch the Tor Project's list of Exit-flagged relay addresses (keyless, CORS)."
+            "purpose": "Fetch the Tor Project's list of exit relay addresses."
           }
         ]
       },
