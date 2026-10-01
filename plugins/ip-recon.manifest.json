@@ -2,8 +2,8 @@
   "identifier": "run.vineyard.pluginpacks.ip_recon",
   "content_type": "vineyard:pluginpack",
   "name": "IP Recon",
-  "version": "1.1.0",
-  "description": "Passive, keyless IP enrichment: RDAP allocation/ownership, Shodan InternetDB exposure (open ports, CVEs, hostnames), approximate geolocation, and a Tor exit-node check. Runs entirely in the browser — no API keys, no server.",
+  "version": "1.1.1",
+  "description": "Enriches IP Address nodes with RDAP allocation, Shodan InternetDB open ports/CVEs/hostnames, geolocation, and a Tor exit-node check.",
   "author": {
     "name": "VINEYARD",
     "url": "https://github.com/Vineyard-Intelligence"
@@ -22,8 +22,8 @@
       "identifier": "run.vineyard.plugins.rdap_ip",
       "content_type": "vineyard:plugin",
       "name": "RDAP IP",
-      "version": "1.0.0",
-      "description": "Looks up each selected IP's allocation in RDAP: adds the owning Netblock node (CIDR / network name / country) and fills the IP's organization + country. Keyless, CORS-native.",
+      "version": "1.0.1",
+      "description": "Looks up each selected IP Address in RDAP. Creates a Netblock node (CIDR, network name, country) linked \"within netblock\" and fills the IP's organization and country_code if empty.",
       "icon": "boxes",
       "platforms": {
         "primary": "web",
@@ -78,8 +78,8 @@
       "identifier": "run.vineyard.plugins.shodan_internetdb",
       "content_type": "vineyard:plugin",
       "name": "Shodan InternetDB",
-      "version": "1.0.0",
-      "description": "Enriches each selected IP from Shodan's free InternetDB: open ports become a Host node, known CVEs become Vulnerability nodes, and reverse hostnames become Domain nodes. Keyless, no server.",
+      "version": "1.0.1",
+      "description": "Looks up each selected IP Address in Shodan InternetDB. Creates a Host node with the open ports (and OS when known) linked \"exposes\", Vulnerability nodes for known CVEs linked \"affected by\", and Domain nodes for reverse hostnames linked \"resolves to\".",
       "icon": "radar",
       "platforms": {
         "primary": "web",
@@ -143,8 +143,8 @@
       "identifier": "run.vineyard.plugins.ip_geolocation",
       "content_type": "vineyard:plugin",
       "name": "IP Geolocation",
-      "version": "1.0.0",
-      "description": "Adds an approximate Location node (city / country / lat-lon) for each selected IP via ipwho.is and fills the IP's country + organization if empty. Keyless, no server. Geolocation is approximate.",
+      "version": "1.0.1",
+      "description": "Geolocates each selected IP Address via ipwho.is. Creates a Location node (city, region, country, latitude/longitude) linked \"geolocated to\" and fills the IP's country_code and organization if empty.",
       "icon": "map-pin",
       "platforms": {
         "primary": "web",
@@ -199,8 +199,8 @@
       "identifier": "run.vineyard.plugins.tor_exit_check",
       "content_type": "vineyard:plugin",
       "name": "Tor Exit Node",
-      "version": "1.0.0",
-      "description": "Marks each selected IP with is_tor_exit — whether it is a Tor exit relay — by fetching the Tor Project's Onionoo Exit-flagged relay list once and matching the whole selection against it offline. One request per run, not per address, so nothing tells the Tor Project which IPs you asked about. Keyless, no server. An exit address means the traffic left the Tor network there; it says nothing about who sent it.",
+      "version": "1.0.1",
+      "description": "Checks each selected IP Address against the Tor Project's list of exit relays and sets is_tor_exit (true/false) and tor_exit_checked_at (the list's publication time) on the IP. Creates no nodes.",
       "icon": "shield",
       "platforms": {
         "primary": "web",

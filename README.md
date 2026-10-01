@@ -4,16 +4,18 @@ A Vineyard **plugin pack** for passive, keyless enrichment of **IP Address** nod
 in the browser sandbox — no server, no API key, no cost. Every endpoint is CORS-enabled and free, and
 these views complement the Team Cymru **IP → ASN** pack (routing) with allocation, exposure and geo.
 
-Three plugins:
+Four plugins:
 
-- **RDAP IP** — looks up the IP's allocation in **RDAP** (`rdap.org` bootstrap): adds the owning
-  **Netblock** node (CIDR / network name / country, linked `within netblock`) and fills the IP's
-  organization + country.
-- **Shodan InternetDB** — enriches the IP from Shodan's **free, keyless** InternetDB: open ports become
-  a **Host** node (`exposes`), known CVEs become **Vulnerability** nodes (`affected by`), and reverse
-  hostnames become **Domain** nodes (`resolves to`).
-- **IP Geolocation** — adds an approximate **Location** node (city / country / lat-lon) via `ipwho.is`,
-  linked `geolocated to`, and fills the IP's country + organization if empty.
+- **RDAP IP** — looks up the IP in **RDAP**: creates a **Netblock** node (CIDR, network name,
+  country) linked `within netblock` and fills the IP's organization and country_code if empty.
+- **Shodan InternetDB** — looks up the IP in Shodan InternetDB: creates a **Host** node with the
+  open ports (and OS when known) linked `exposes`, **Vulnerability** nodes for known CVEs linked
+  `affected by`, and **Domain** nodes for reverse hostnames linked `resolves to`.
+- **IP Geolocation** — geolocates the IP via `ipwho.is`: creates a **Location** node (city, region,
+  country, latitude/longitude) linked `geolocated to` and fills the IP's country_code and
+  organization if empty.
+- **Tor Exit Node** — checks the IP against the Tor Project's list of exit relays and sets
+  `is_tor_exit` (true/false) and `tor_exit_checked_at` on the IP. Creates no nodes.
 
 ## How it works
 
