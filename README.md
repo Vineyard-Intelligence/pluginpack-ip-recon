@@ -10,7 +10,8 @@ Four plugins:
   country) linked `within netblock` and fills the IP's organization and country_code if empty.
 - **Shodan InternetDB** — looks up the IP in Shodan InternetDB: creates a **Host** node with the
   open ports (and OS when known) linked `exposes`, **Vulnerability** nodes for known CVEs linked
-  `affected by`, and **Domain** nodes for reverse hostnames linked `resolves to`.
+  `affected by`, and **Domain** nodes for reverse hostnames linked `resolves to`, and writes
+  Shodan's tags for the IP (`cdn`, `cloud`, `honeypot`, `self-signed` …) onto it as `shodan_tags`.
 - **IP Geolocation** — geolocates the IP via `ipwho.is`: creates a **Location** node (city, region,
   country, latitude/longitude) linked `geolocated to` and fills the IP's country_code and
   organization if empty.

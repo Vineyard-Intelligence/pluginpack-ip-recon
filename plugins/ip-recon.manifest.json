@@ -2,8 +2,8 @@
   "identifier": "run.vineyard.pluginpacks.ip_recon",
   "content_type": "vineyard:pluginpack",
   "name": "IP Recon",
-  "version": "1.1.2",
-  "description": "Enriches IP Address nodes with RDAP allocation, Shodan InternetDB open ports/CVEs/hostnames, geolocation, and a Tor exit-node check.",
+  "version": "1.2.0",
+  "description": "Enriches IP Address nodes with RDAP allocation, Shodan InternetDB open ports/CVEs/hostnames/tags, geolocation, and a Tor exit-node check.",
   "author": {
     "name": "VINEYARD",
     "url": "https://github.com/Vineyard-Intelligence"
@@ -78,8 +78,8 @@
       "identifier": "run.vineyard.plugins.shodan_internetdb",
       "content_type": "vineyard:plugin",
       "name": "Shodan InternetDB",
-      "version": "1.0.2",
-      "description": "Looks up each selected IP Address in Shodan InternetDB. Creates a Host node with the open ports (and OS when known) linked \"exposes\", Vulnerability nodes for known CVEs linked \"affected by\", and Domain nodes for reverse hostnames linked \"resolves to\".",
+      "version": "1.1.0",
+      "description": "Looks up each selected IP Address in Shodan InternetDB. Creates a Host node with the open ports (and OS when known) linked \"exposes\", Vulnerability nodes for known CVEs linked \"affected by\", and Domain nodes for reverse hostnames linked \"resolves to\", and writes Shodan's tags for the IP (e.g. cdn, cloud, honeypot, self-signed) onto it as shodan_tags.",
       "icon": "radar",
       "platforms": {
         "primary": "web",
@@ -118,6 +118,7 @@
         "graph": [
           "node:read",
           "node:create",
+          "node:update",
           "edge:create"
         ],
         "network": [
@@ -126,7 +127,7 @@
             "methods": [
               "GET"
             ],
-            "purpose": "Look up open ports, known CVEs and hostnames for each selected IP in Shodan InternetDB."
+            "purpose": "Look up open ports, known CVEs, hostnames and tags for each selected IP in Shodan InternetDB."
           }
         ]
       },
