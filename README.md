@@ -23,6 +23,12 @@ Four plugins:
 - **RDAP** lookups go to `rdap.org`, which redirects to the authoritative RIR
   (ARIN/RIPE/APNIC/LACNIC/AFRINIC). The CIDR is taken from `cidr0_cidrs`, falling back to the
   start/end address range.
+  - The selection is looked up in turns across registries (by IANA's RDAP bootstrap), so no one
+    registry gets a burst of requests.
+  - Within one run, an address inside an end assignment that was already looked up (ARIN
+    `ASSIGNMENT`, RIPE/AFRINIC `ASSIGNED PA/PI`, APNIC `ASSIGNED PORTABLE/NON-PORTABLE`, LACNIC
+    `ASSIGNED/REASSIGNED`, …) reuses that answer. Allocations are never reused, because they can
+    hold more specific registrations. Nothing is kept between runs.
 - **Shodan InternetDB** (`internetdb.shodan.io/<ip>`) is a keyless endpoint returning an IP's open
   ports, CPEs, hostnames, tags and known CVEs. A `404` simply means Shodan has no data for that IP
   (handled gracefully).
