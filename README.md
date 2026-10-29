@@ -4,7 +4,7 @@ A Vineyard **plugin pack** for passive, keyless enrichment of **IP Address** nod
 in the browser sandbox — no server, no API key, no cost. Every endpoint is CORS-enabled and free, and
 these views complement the Team Cymru **IP → ASN** pack (routing) with allocation, exposure and geo.
 
-Four plugins:
+Three plugins:
 
 - **RDAP IP** — looks up the IP in **RDAP**: creates a **Netblock** node (CIDR, network name,
   country) linked `within netblock` and fills the IP's organization and country_code if empty.
@@ -15,8 +15,6 @@ Four plugins:
 - **IP Geolocation** — geolocates the IP via `ipwho.is`: creates a **Location** node (city, region,
   country, latitude/longitude) linked `geolocated to` and fills the IP's country_code and
   organization if empty.
-- **Tor Exit Node** — checks the IP against the Tor Project's list of exit relays and sets
-  `is_tor_exit` (true/false) and `tor_exit_checked_at` on the IP. Creates no nodes.
 
 ## How it works
 

@@ -2,8 +2,8 @@
   "identifier": "run.vineyard.pluginpacks.ip_recon",
   "content_type": "vineyard:pluginpack",
   "name": "IP Recon",
-  "version": "1.3.1",
-  "description": "Enriches IP Address nodes with RDAP allocation, Shodan InternetDB open ports/CVEs/hostnames/tags, geolocation, and a Tor exit-node check.",
+  "version": "2.0.0",
+  "description": "Enriches IP Address nodes with RDAP allocation, Shodan InternetDB open ports/CVEs/hostnames/tags, and geolocation.",
   "author": {
     "name": "VINEYARD",
     "url": "https://github.com/Vineyard-Intelligence"
@@ -184,54 +184,6 @@
               "GET"
             ],
             "purpose": "Look up each selected IP's approximate location and ISP."
-          }
-        ]
-      },
-      "lifecycle": {
-        "persistence": "opt-in",
-        "controls": [
-          "progress",
-          "cancel"
-        ],
-        "progress": "determinate"
-      }
-    },
-    {
-      "identifier": "run.vineyard.plugins.tor_exit_check",
-      "content_type": "vineyard:plugin",
-      "name": "Tor Exit Node",
-      "version": "1.0.2",
-      "description": "Checks each selected IP Address against the Tor Project's list of exit relays and sets is_tor_exit (true/false) and tor_exit_checked_at (the list's publication time) on the IP. Creates no nodes.",
-      "icon": "shield",
-      "platforms": {
-        "primary": "web",
-        "web": {
-          "runtime": "sandbox-js",
-          "entry": "dist/pack.mjs"
-        }
-      },
-      "io": {
-        "consumes": [
-          {
-            "typepack": "run.vineyard.typepacks.infrastructure",
-            "category": "infrastructure",
-            "name": "ip_address"
-          }
-        ],
-        "produces": []
-      },
-      "scopes": {
-        "graph": [
-          "node:read",
-          "node:update"
-        ],
-        "network": [
-          {
-            "endpoint": "https://onionoo.torproject.org/details",
-            "methods": [
-              "GET"
-            ],
-            "purpose": "Fetch the Tor Project's list of exit relay addresses."
           }
         ]
       },
