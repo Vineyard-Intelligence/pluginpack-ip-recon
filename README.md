@@ -39,7 +39,18 @@ overwrites known fields with blanks.
 ## Layout
 
 - `plugins/ip-recon.manifest.json` — the pack manifest (catalog entry source).
+- `src/` — the source of the bundle.
 - `dist/pack.mjs` — the runnable bundle.
 
 Data sources: the RDAP bootstrap (`rdap.org`), Shodan InternetDB (`internetdb.shodan.io`), and
 `ipwho.is`. No credentials, no cost.
+
+## Building from source
+
+`src/` is the source of `dist/pack.mjs`. The build pins esbuild, so the published bundle can be
+checked against the source:
+
+```bash
+node build.mjs
+git diff --exit-code dist/pack.mjs
+```
