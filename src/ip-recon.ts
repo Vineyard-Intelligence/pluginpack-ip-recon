@@ -570,7 +570,7 @@ export default definePluginPack({
     identifier: 'run.vineyard.pluginpacks.ip_recon',
     content_type: 'vineyard:pluginpack',
     name: 'IP Recon',
-    version: '2.0.0',
+    version: '2.0.1',
     description:
         'Enriches IP Address nodes with RDAP allocation, Shodan InternetDB open ports/CVEs/hostnames/tags, and geolocation.',
     plugins: [rdapIp, shodanInternetdb, ipGeolocation],
