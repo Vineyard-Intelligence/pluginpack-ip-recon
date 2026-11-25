@@ -2,7 +2,7 @@
   "identifier": "run.vineyard.pluginpacks.ip_recon",
   "content_type": "vineyard:pluginpack",
   "name": "IP Recon",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "summary": "Enriches IP Address nodes with RDAP allocation, Shodan InternetDB open ports/CVEs/hostnames/tags, and geolocation.",
   "description": "For a first look at an IP address without touching it: who it is registered to, what Shodan has already seen exposed on it, and roughly where it is. For routing, the autonomous system that announces it, use the IP to ASN (Team Cymru - DoH Based) pack.\n\n**Needs:** no API key or account. The repository describes all three services as free and states no rate limits for them.\n\n**Who sees it:** each selected IP address goes to rdap.org and the regional registry it redirects to (ARIN, RIPE NCC, APNIC, LACNIC or AFRINIC), to internetdb.shodan.io and to ipwho.is, directly from the analyst's client with no server in between. The addresses themselves are never contacted.\n\n**Read results with care:**\n- `organization` is filled only while empty, so the plugin that runs first sets it: RDAP IP writes the registrant organization (or the network's description remark, where KRNIC and JPNIC name the holder; never the administrative contact), IP Geolocation writes the ISP.\n- A missing Host node means InternetDB had no data for the address (it answered 404).\n- IP geolocation is approximate; verify it before relying on it.\n\n**Data and licences:** registration records from the regional internet registries through RDAP, Shodan InternetDB and ipwho.is; this repository does not restate their terms. The registry table built into the pack is taken from IANA's RDAP bootstrap.\n\n**Source:** https://github.com/Vineyard-Intelligence/pluginpack-ip-recon (Apache-2.0)",
   "author": {
@@ -23,7 +23,7 @@
       "identifier": "run.vineyard.plugins.rdap_ip",
       "content_type": "vineyard:plugin",
       "name": "RDAP IP",
-      "version": "1.1.1",
+      "version": "1.2.0",
       "description": "Looks up each selected IP Address in RDAP. Creates a Netblock node (CIDR, network name, country) linked \"within netblock\" and fills the IP's organization and country_code if empty.",
       "icon": "boxes",
       "platforms": {

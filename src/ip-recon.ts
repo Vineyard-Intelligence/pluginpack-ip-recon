@@ -11,7 +11,7 @@
 // allow-origin: *`; RDAP's rdap.org 302 is followed by the browser to an RIR that also sends CORS.
 // These complement the Cymru "IP → ASN" pack (routing view) with allocation, exposure and geo views.
 import { definePlugin, definePluginPack } from './sdk';
-import type { HostContext, RunResult, GraphNode } from './sdk';
+import type { HostContext, RunResult, GraphNode, SafeResponse } from './sdk';
 
 const isIp = (n: GraphNode) => n.type === 'infrastructure.ip_address';
 const ipOf = (n: GraphNode) => String((n.data as any).ip_address ?? '').trim();
@@ -200,12 +200,48 @@ function roundRobin<T>(items: T[], keyOf: (item: T) => string): T[] {
 // =====================================================================================
 // Plugin 1 — RDAP IP (allocation / ownership)
 // =====================================================================================
+
+/** Refusals already logged in this run, so a budget refusal over 100 IPs is one line, not 100. */
+const keepNoted = new WeakMap<HostContext, Set<string>>();
+
+/**
+ * Keep a call's raw answer on the node it describes (plugin raw results, spec §5). Every call site
+ * goes through here, for these reasons:
+ *   - desktop builds before ctx.retain have none, and a bare call there is a TypeError that would
+ *     fail a run that otherwise works, so the check is `typeof`, not truthiness;
+ *   - status 0 is never a response: it is a request that did not happen (a network error, a host
+ *     refusal), and says nothing about the address;
+ *   - only status, response headers and body are handed over, built afresh: nothing about the
+ *     request (the URL) can ride along on a response object the host would have to trust;
+ *   - a refusal (over budget) or a throw costs the raw copy, never the run: the mapped fields are
+ *     already staged and are what the analyst ran this for.
+ */
+async function keep(ctx: HostContext, nodeId: string, op: string, res: SafeResponse): Promise<void> {
+    if (typeof ctx.retain !== 'function' || !nodeId || !(res?.status > 0)) return;
+    let reason = '';
+    try {
+        // The response's own text, not a re-serialised parse, so the host hashes the bytes the
+        // registry sent.
+        const body = await res.text();
+        const out = await ctx.retain(nodeId, op, { status: res.status, headers: { ...(res.headers ?? {}) }, body });
+        if (out && out.kept === false) reason = typeof out.reason === 'string' && out.reason ? out.reason : 'refused';
+    } catch {
+        reason = 'the host could not keep it';
+    }
+    if (!reason) return;
+    let noted = keepNoted.get(ctx);
+    if (!noted) keepNoted.set(ctx, (noted = new Set()));
+    if (noted.has(`${op}\0${reason}`)) return;
+    noted.add(`${op}\0${reason}`);
+    ctx.progress?.log?.(`Raw ${op} result not kept — ${reason}`);
+}
+
 const rdapIp = definePlugin({
     manifest: {
         identifier: 'run.vineyard.plugins.rdap_ip',
         content_type: 'vineyard:plugin',
         name: 'RDAP IP',
-        version: '1.1.1',
+        version: '1.2.0',
         description:
             'Looks up each selected IP Address in RDAP. Creates a Netblock node (CIDR, network name, country) linked "within netblock" and fills the IP\'s organization and country_code if empty.',
         icon: 'boxes',
@@ -241,6 +277,8 @@ const rdapIp = definePlugin({
         const netByCidr = new Map<string, string>(); // cidr -> netblock node id (reuse within a run)
         // Nothing is kept between runs: this only saves asking again for an address the same run
         // already has the answer to.
+        // `res` rides along so an address answered from a reused assignment keeps the same answer
+        // its fields were mapped from (see keep below).
         const assignments: { v6: boolean; start: bigint; end: bigint; doc: any }[] = [];
         let netblocks = 0;
         let updated = 0;
@@ -263,23 +301,36 @@ const rdapIp = definePlugin({
 
             const addr = ipToBigInt(ip);
             const v6 = ip.includes(':');
-            let doc: any =
-                addr === null
-                    ? undefined
-                    : assignments.find((a) => a.v6 === v6 && a.start <= addr && addr <= a.end)?.doc;
-            if (doc) {
+            // Raw result (op "rdap"): the registry answer the fields below are mapped from, on this
+            // IP's node. ctx.net.fetch has already followed rdap.org's redirect to the RIR, and the
+            // IANA bootstrap is the table built into this pack, so no bootstrap answer ever reaches
+            // here to be kept. An address answered from an end assignment already fetched in this
+            // run keeps nothing (analyst's decision, 2026-11-25): only an answer to a request about
+            // this address is its original, and the fetching address already holds that one.
+            const hit =
+                addr === null ? undefined : assignments.find((a) => a.v6 === v6 && a.start <= addr && addr <= a.end);
+            let doc: any = hit?.doc;
+            if (hit) {
                 reused++;
             } else {
+                let res: SafeResponse;
                 try {
                     lookups++;
-                    const res = await ctx.net!.fetch!(`https://rdap.org/ip/${encodeURIComponent(ip)}`, {
+                    res = await ctx.net!.fetch!(`https://rdap.org/ip/${encodeURIComponent(ip)}`, {
                         method: 'GET',
                     });
-                    if (!res.ok) continue;
+                    if (!res.ok) {
+                        // 404 = no registration for this address. Kept (analyst's decision,
+                        // 2026-11-25): "no registry had a record of this IP on this date" is itself a
+                        // finding. A 429 or 5xx is about the service, not the address, and is not kept.
+                        if (res.status === 404) await keep(ctx, id, 'rdap', res);
+                        continue;
+                    }
                     doc = await res.json();
                 } catch {
                     continue;
                 }
+                await keep(ctx, id, 'rdap', res);
                 const start = ipToBigInt(String(doc?.startAddress ?? ''));
                 const end = ipToBigInt(String(doc?.endAddress ?? ''));
                 if (
@@ -590,7 +641,7 @@ export default definePluginPack({
     identifier: 'run.vineyard.pluginpacks.ip_recon',
     content_type: 'vineyard:pluginpack',
     name: 'IP Recon',
-    version: '2.1.1',
+    version: '2.2.0',
     summary:
         'Enriches IP Address nodes with RDAP allocation, Shodan InternetDB open ports/CVEs/hostnames/tags, and geolocation.',
     description: PACK_PAGE,
