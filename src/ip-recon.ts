@@ -209,6 +209,11 @@ const keepNoted = new WeakMap<HostContext, Set<string>>();
  * goes through here, for these reasons:
  *   - desktop builds before ctx.retain have none, and a bare call there is a TypeError that would
  *     fail a run that otherwise works, so the check is `typeof`, not truthiness;
+ *   - only a 2xx answer the plugin maps from is kept (analyst's decision, 2026-11-25, reversing the
+ *     earlier one that kept a 404 as a finding): a miss — a 404, a 429 or 5xx, a 2xx that is not
+ *     JSON or is empty — adds nothing to the address and only fills its raw results with noise.
+ *     Callers decide that; this re-checks 2xx so a non-2xx can never be handed over (the host
+ *     refuses one too, and logs the refusal as "not kept" noise);
  *   - status 0 is never a response: it is a request that did not happen (a network error, a host
  *     refusal), and says nothing about the address;
  *   - only status, response headers and body are handed over, built afresh: nothing about the
@@ -217,7 +222,7 @@ const keepNoted = new WeakMap<HostContext, Set<string>>();
  *     already staged and are what the analyst ran this for.
  */
 async function keep(ctx: HostContext, nodeId: string, op: string, res: SafeResponse): Promise<void> {
-    if (typeof ctx.retain !== 'function' || !nodeId || !(res?.status > 0)) return;
+    if (typeof ctx.retain !== 'function' || !nodeId || !(res?.status >= 200 && res.status < 300)) return;
     let reason = '';
     try {
         // The response's own text, not a re-serialised parse, so the host hashes the bytes the
@@ -236,12 +241,22 @@ async function keep(ctx: HostContext, nodeId: string, op: string, res: SafeRespo
     ctx.progress?.log?.(`Raw ${op} result not kept — ${reason}`);
 }
 
+/**
+ * An answer there is anything to map from: a JSON object with at least one key. objectClassName is
+ * deliberately not required — not every RDAP server is RFC-strict, and one that omits it is still
+ * mapped. Anything else (null, an array, `{}`, a bare value) maps no field, so skipping it changes
+ * no write; it only spares a null body the TypeError that used to fail the run.
+ */
+function hasContent(doc: unknown): doc is Record<string, any> {
+    return !!doc && typeof doc === 'object' && !Array.isArray(doc) && Object.keys(doc).length > 0;
+}
+
 const rdapIp = definePlugin({
     manifest: {
         identifier: 'run.vineyard.plugins.rdap_ip',
         content_type: 'vineyard:plugin',
         name: 'RDAP IP',
-        version: '1.2.0',
+        version: '1.3.0',
         description:
             'Looks up each selected IP Address in RDAP. Creates a Netblock node (CIDR, network name, country) linked "within netblock" and fills the IP\'s organization and country_code if empty.',
         icon: 'boxes',
@@ -277,8 +292,6 @@ const rdapIp = definePlugin({
         const netByCidr = new Map<string, string>(); // cidr -> netblock node id (reuse within a run)
         // Nothing is kept between runs: this only saves asking again for an address the same run
         // already has the answer to.
-        // `res` rides along so an address answered from a reused assignment keeps the same answer
-        // its fields were mapped from (see keep below).
         const assignments: { v6: boolean; start: bigint; end: bigint; doc: any }[] = [];
         let netblocks = 0;
         let updated = 0;
@@ -319,17 +332,16 @@ const rdapIp = definePlugin({
                     res = await ctx.net!.fetch!(`https://rdap.org/ip/${encodeURIComponent(ip)}`, {
                         method: 'GET',
                     });
-                    if (!res.ok) {
-                        // 404 = no registration for this address. Kept (analyst's decision,
-                        // 2026-11-25): "no registry had a record of this IP on this date" is itself a
-                        // finding. A 429 or 5xx is about the service, not the address, and is not kept.
-                        if (res.status === 404) await keep(ctx, id, 'rdap', res);
-                        continue;
-                    }
+                    // 404 = no registration for this address; a 429 or 5xx is about the service.
+                    // None is kept: a miss adds nothing to the address (see keep).
+                    if (!res.ok) continue;
                     doc = await res.json();
                 } catch {
-                    continue;
+                    continue; // not JSON: nothing to map, nothing kept
                 }
+                // A 2xx with nothing in it (null, an array, `{}`) maps nothing, so it is neither kept
+                // nor reused for another address.
+                if (!hasContent(doc)) continue;
                 await keep(ctx, id, 'rdap', res);
                 const start = ipToBigInt(String(doc?.startAddress ?? ''));
                 const end = ipToBigInt(String(doc?.endAddress ?? ''));
@@ -641,7 +653,7 @@ export default definePluginPack({
     identifier: 'run.vineyard.pluginpacks.ip_recon',
     content_type: 'vineyard:pluginpack',
     name: 'IP Recon',
-    version: '2.2.0',
+    version: '2.3.0',
     summary:
         'Enriches IP Address nodes with RDAP allocation, Shodan InternetDB open ports/CVEs/hostnames/tags, and geolocation.',
     description: PACK_PAGE,
